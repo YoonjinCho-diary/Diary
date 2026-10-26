@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="일상의 기록">
+<title>일상의 기록</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600&display=swap">
+<style>
+:root{
+ --bg:#f4f1ea;--panel:#fbf9f4;--paper:#fffdf7;--fg:#26241f;--muted:#8b857a;--faint:#b3ada1;
+ --border:#e5e0d4;--accent:#5f6f52;--accent-fg:#fff;--hover:#f0ece2;--sel:#e9e4d6;--danger:#b4473c;
+ --sans:"Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+ --serif:"Noto Serif KR","Apple SD Gothic Neo",serif;
+}
+@media (prefers-color-scheme:dark){:root{--bg:#1b1a17;--panel:#211f1b;--paper:#262420;--fg:#e8e3d8;--muted:#9a948a;--faint:#625d54;--border:#33302a;--accent:#9db38a;--accent-fg:#1b1a17;--hover:#2a2822;--sel:#34312a;--danger:#e07a6e}}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font-family:var(--sans);background:var(--bg);color:var(--fg);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:1px solid var(--border);border-radius:8px;padding:6px 12px;white-space:nowrap}
+button:hover{background:var(--hover)}
+button.primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+button.primary:hover{filter:brightness(1.06)}
+button.ghost{border-color:transparent}
+button.danger{color:var(--danger)}
+code{background:var(--sel);padding:1px 5px;border-radius:4px;font-size:12px}
+.hidden{display:none!important}
+.screen{min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:24px}
+.card{width:100%;max-width:520px;background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:30px 28px}
+.card h1{font-family:var(--serif);font-weight:600;font-size:26px;margin:0 0 6px}
+.card p{color:var(--muted);margin:0 0 18px;line-height:1.7}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+.field input,.field textarea{width:100%;background:var(--paper);border:1px solid var(--border);border-radius:8px;padding:9px 11px}
+.field textarea{min-height:160px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;line-height:1.45}
+.err{background:rgba(180,71,60,.08);border:1px solid rgba(180,71,60,.35);color:var(--danger);border-radius:8px;padding:10px 12px;font-size:13px;margin-bottom:14px;white-space:pre-wrap;line-height:1.6}
+.note{font-size:12.5px;color:var(--muted);background:var(--hover);border-radius:8px;padding:10px 12px;margin-top:14px;line-height:1.7}
+.gbtn{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:11px;font-size:15px}
+pre.rules{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:11.5px;overflow:auto;max-height:220px;margin:0 0 10px}
+/* main layout */
+#main{display:flex;flex-direction:column;height:100dvh}
+.topbar{height:52px;flex:none;display:flex;align-items:center;gap:10px;padding:0 14px;border-bottom:1px solid var(--border);background:var(--panel)}
+.brand{font-family:var(--serif);font-weight:600;font-size:17px;letter-spacing:.02em;white-space:nowrap}
+.search{flex:1;max-width:360px;margin-left:auto}
+.search input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:7px 11px}
+.menu{position:relative}
+.dropdown{position:absolute;right:0;top:40px;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:6px;min-width:200px;z-index:20;display:none}
+.dropdown.open{display:block}
+.dropdown button{display:block;width:100%;text-align:left;border:none;padding:9px 12px;border-radius:6px}
+.dropdown hr{border:none;border-top:1px solid var(--border);margin:4px 0}
+.body{flex:1;display:grid;grid-template-columns:210px 320px 1fr;min-height:0}
+.pane{min-height:0;overflow-y:auto}
+.tree{border-right:1px solid var(--border);padding:12px 8px;background:var(--panel)}
+.tree button{display:flex;justify-content:space-between;width:100%;border:none;text-align:left;padding:7px 10px;border-radius:7px;color:var(--fg)}
+.tree button .cnt{color:var(--faint);font-size:12px}
+.tree button.sel{background:var(--sel);font-weight:600}
+.tree .year{margin-top:12px;font-size:11.5px;color:var(--muted);letter-spacing:.08em;padding:4px 10px}
+.tree .month{padding-left:22px}
+.list{border-right:1px solid var(--border);background:var(--panel)}
+.list-head{position:sticky;top:0;background:var(--panel);padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12px;color:var(--muted);z-index:2}
+.list-head select{background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:5px 8px;display:none;flex:1}
+.item{padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer}
+.item:hover{background:var(--hover)}
+.item.sel{background:var(--sel)}
+.item .d{font-size:12px;color:var(--muted);display:flex;gap:8px}
+.item .d .w{color:var(--faint);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item .t{font-weight:600;margin:3px 0 2px;font-size:14px}
+.item .p{color:var(--muted);font-size:12.5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.empty{padding:40px 20px;text-align:center;color:var(--faint);line-height:1.8}
+.detail{background:var(--paper);display:flex;flex-direction:column}
+.detail-bar{display:flex;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--paper);z-index:2}
+.detail-bar .sp{flex:1}
+.back{display:none}
+.read{max-width:720px;margin:0 auto;padding:40px 32px 90px;font-family:var(--serif);width:100%}
+.read .date{color:var(--muted);font-size:14px;letter-spacing:.02em}
+.read h2{font-size:24px;font-weight:600;margin:10px 0 28px;line-height:1.35}
+.read .content{font-size:16.5px;line-height:1.95;white-space:pre-wrap;word-break:keep-all}
+.read .content u{text-decoration-thickness:1px;text-underline-offset:4px}
+.edit{max-width:720px;margin:0 auto;padding:28px 32px 90px;width:100%}
+.edit .row{display:grid;grid-template-columns:170px 1fr;gap:10px;margin-bottom:10px}
+.edit input,.edit textarea{width:100%;background:transparent;border:none;border-bottom:1px solid var(--border);padding:8px 2px;border-radius:0}
+.edit input:focus,.edit textarea:focus{outline:none;border-bottom-color:var(--accent)}
+.edit .title{font-family:var(--serif);font-size:22px;font-weight:600;margin-bottom:12px}
+.edit textarea{font-family:var(--serif);font-size:16.5px;line-height:1.95;min-height:55vh;resize:vertical;border:none}
+.edit .hint{font-size:12px;color:var(--faint);margin-top:8px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90vw;z-index:50;line-height:1.5}
+.toast.show{opacity:1}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;z-index:40;padding:20px}
+.modal .card{max-width:520px;max-height:90vh;overflow:auto}
+.modal h1{font-size:20px!important}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+@media (max-width:860px){
+ .body{grid-template-columns:1fr}
+ .tree{display:none}
+ .list-head select{display:block}
+ .detail{display:none}
+ #main.detail-view .list{display:none}
+ #main.detail-view .detail{display:flex}
+ .back{display:inline-block}
+ .search{max-width:none}
+ .read{padding:28px 20px 90px}
+ .edit{padding:20px 18px 90px}
+ .edit .row{grid-template-columns:1fr}
+}
+@media (max-width:480px){.brand{display:none}.topbar{gap:8px;padding:0 10px}}
+</style>
+</head>
+<body>
+
+<div id="setup" class="screen hidden">
+ <div class="card">
+  <h1>일상의 기록</h1>
+  <p>처음 한 번만 설정합니다. 이후에는 이 기기에서 바로 로그인 화면이 열립니다.</p>
+  <div id="setupErr" class="err hidden"></div>
+  <div class="field"><label>허용할 Google 이메일 (이 계정만 로그인 가능)</label><input id="cfgEmail" type="email" placeholder="you@gmail.com" autocomplete="email"></div>
+  <div class="field"><label>firebaseConfig — Firebase 콘솔에서 복사한 내용을 그대로 붙여넣기</label><textarea id="cfgText" placeholder='const firebaseConfig = {
+  apiKey: "AIza....",
+  authDomain: "xxxx.firebaseapp.com",
+  projectId: "xxxx",
+  storageBucket: "...",
+  messagingSenderId: "...",
+  appId: "..."
+};'></textarea></div>
+  <button id="cfgSave" class="primary gbtn">저장하고 시작</button>
+  <div class="note">어디서 복사하나요? Firebase 콘솔 → 왼쪽 위 톱니바퀴 <b>프로젝트 설정</b> → <b>일반</b> 탭 → 아래 <b>내 앱</b> → 웹 앱 선택 → <b>SDK 설정 및 구성 › 구성</b>. 중괄호 바깥의 <code>const firebaseConfig =</code> 같은 글자가 섞여도 자동으로 인식합니다.</div>
+ </div>
+</div>
+
+<div id="login" class="screen hidden">
+ <div class="card">
+  <h1>일상의 기록</h1>
+  <p id="loginSub"></p>
+  <div id="loginErr" class="err hidden"></div>
+  <button id="btnLogin" class="primary gbtn">Google로 로그인</button>
+  <div class="note" id="loginNote"></div>
+  <div class="btnrow" style="margin-top:14px;justify-content:flex-end">
+   <button id="btnReconfig" class="ghost" style="font-size:12px;color:var(--muted)">설정 다시 입력</button>
+  </div>
+ </div>
+</div>
+
+<div id="main" class="hidden">
+ <div class="topbar">
+  <div class="brand">일상의 기록</div>
+  <div class="search"><input id="q" type="search" placeholder="검색 (제목·본문·날씨)"></div>
+  <button id="btnNew" class="primary">+ 새 일기</button>
+  <div class="menu"><button id="btnMenu" class="ghost" aria-label="메뉴">⋯</button>
+   <div id="dd" class="dropdown">
+    <button id="mExport">JSON 백업 내려받기</button>
+    <button id="mImport">JSON 가져오기</button>
+    <hr>
+    <button id="mSettings">설정 · 다른 기기 연결</button>
+    <button id="mRules">보안 규칙 보기</button>
+    <hr>
+    <button id="mLogout">로그아웃</button>
+   </div>
+  </div>
+ </div>
+ <div class="body">
+  <nav id="tree" class="pane tree"></nav>
+  <section class="pane list">
+   <div class="list-head"><span id="listTitle">전체</span><select id="monthSel"></select><span id="listCount"></span></div>
+   <div id="items"></div>
+  </section>
+  <section id="detail" class="pane detail"></section>
+ </div>
+</div>
+
+<input id="fileIn" type="file" accept="application/json,.json" class="hidden">
+<div id="toast" class="toast"></div>
+<div id="modal" class="modal hidden"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, doc, setDoc, deleteDoc, onSnapshot, query, orderBy, serverTimestamp, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const LS = 'diary.config.v1';
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const WD = ['일','월','화','수','목','금','토'];
+const todayISO = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+const toast = (m, ms = 2600) => { const t = $('#toast'); t.textContent = m; t.classList.add('show'); clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), ms); };
+
+let cfg = null, app, auth, db, user = null, entries = [], unsub = null, draft = null;
+const state = { sel: 'all', id: null, mode: 'empty', q: '', mobileDetail: false };
+
+/* ---------------- 설정 ---------------- */
+function loadCfg() { try { const c = JSON.parse(localStorage.getItem(LS)); return (c && c.firebase && c.firebase.apiKey && c.email) ? c : null; } catch { return null; } }
+function saveCfg(c) { localStorage.setItem(LS, JSON.stringify(c)); }
+function parseConfig(text) {
+  text = (text || '').trim();
+  try { const o = JSON.parse(text); if (o && o.apiKey) return o; } catch {}
+  const out = {}; const re = /["']?([A-Za-z]+)["']?\s*:\s*["']([^"']+)["']/g; let m;
+  while ((m = re.exec(text))) out[m[1]] = m[2];
+  return out.apiKey ? out : null;
+}
+function b64e(s) { return btoa(unescape(encodeURIComponent(s))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+function b64d(s) { s = s.replace(/-/g,'+').replace(/_/g,'/'); return decodeURIComponent(escape(atob(s))); }
+function takeHashConfig() {
+  const m = location.hash.match(/^#cfg=(.+)$/); if (!m) return null;
+  try { const c = JSON.parse(b64d(m[1])); history.replaceState(null, '', location.pathname + location.search); if (c.firebase && c.email) { saveCfg(c); return c; } } catch {}
+  return null;
+}
+function show(id) { for (const s of ['setup','login','main']) $('#'+s).classList.toggle('hidden', s !== id); }
+
+$('#cfgSave').onclick = () => {
+  const err = $('#setupErr'); const email = $('#cfgEmail').value.trim(); const fb = parseConfig($('#cfgText').value);
+  const fail = m => { err.textContent = m; err.classList.remove('hidden'); };
+  if (!email || !email.includes('@')) return fail('이메일을 입력해 주세요.');
+  if (!fb) return fail('firebaseConfig를 인식하지 못했습니다. apiKey가 포함된 설정 내용을 그대로 붙여 넣어 주세요.');
+  if (!fb.projectId || !fb.authDomain) return fail('projectId 또는 authDomain이 빠져 있습니다. 콘솔의 구성 내용을 전체 복사해 주세요.');
+  saveCfg({ firebase: fb, email }); location.reload();
+};
+
+/* ---------------- 오류 설명 ---------------- */
+function describeError(e) {
+  const code = (e && e.code) || ''; const host = location.host || '(로컬 파일)';
+  if (location.protocol === 'file:') return '파일을 직접(더블클릭) 열면 Google 로그인이 동작하지 않습니다. GitHub Pages 등 https 주소에 올린 뒤 그 주소로 접속해 주세요.';
+  if (code === 'auth/unauthorized-domain') return `현재 주소 "${host}"가 Firebase에 등록되어 있지 않습니다.\nFirebase 콘솔 → Authentication → 설정 탭 → 승인된 도메인 → "도메인 추가"에 ${host} 를 추가한 뒤 다시 시도하세요.`;
+  if (code === 'auth/operation-not-allowed') return 'Google 로그인이 꺼져 있습니다.\nFirebase 콘솔 → Authentication → Sign-in method → Google → 사용 설정을 켜 주세요.';
+  if (code === 'auth/configuration-not-found') return 'Authentication이 아직 시작되지 않았습니다.\nFirebase 콘솔 → Authentication → "시작하기"를 누른 뒤 Google 로그인을 켜 주세요.';
+  if (code.includes('api-key') || code === 'auth/invalid-api-key') return 'firebaseConfig의 apiKey가 올바르지 않습니다. 아래 "설정 다시 입력"으로 콘솔의 구성 내용을 다시 붙여 넣어 주세요.';
+  if (code === 'auth/popup-blocked') return '팝업이 차단되었습니다. 주소창 오른쪽 팝업 차단 아이콘을 눌러 허용한 뒤 다시 시도하세요.';
+  if (code === 'auth/popup-closed-by-user') return '로그인 창이 닫혔습니다. 다시 시도해 주세요.';
+  if (code === 'auth/network-request-failed') return '네트워크 연결을 확인해 주세요.';
+  if (code === 'auth/operation-not-supported-in-this-environment') return '이 환경에서는 로그인을 지원하지 않습니다. https 주소로 접속했는지 확인해 주세요.';
+  if (code === 'permission-denied') return `Firestore 접근이 거부되었습니다. Firestore → 규칙 탭에 보안 규칙이 게시되어 있는지, 규칙 안의 이메일이 ${cfg ? cfg.email : ''} 와 같은지 확인하세요. (메뉴 ⋯ → 보안 규칙 보기)`;
+  if (code === 'unavailable') return '서버에 연결할 수 없습니다. 오프라인 상태이면 연결 후 자동으로 동기화됩니다.';
+  return '오류: ' + (code || (e && e.message) || e);
+}
+
+/* ---------------- 로그인 ---------------- */
+function showLogin(msg) {
+  show('login');
+  const el = $('#loginErr'); if (msg) { el.textContent = msg; el.classList.remove('hidden'); } else el.classList.add('hidden');
+  $('#loginSub').textContent = `${cfg.email} 계정만 로그인할 수 있습니다.`;
+  $('#loginNote').innerHTML = location.protocol === 'file:'
+    ? '<b>이 파일을 직접 열어서는 로그인할 수 없습니다.</b> GitHub Pages 같은 https 주소에 올린 뒤 그 주소로 접속해 주세요.'
+    : `현재 주소: <code>${esc(location.host)}</code> · 프로젝트: <code>${esc(cfg.firebase.projectId || '')}</code><br>로그인이 안 되면 위 오류 안내를 따라 주세요. 대부분 "승인된 도메인"에 현재 주소를 추가하면 해결됩니다.`;
+}
+$('#btnLogin').onclick = async () => {
+  const p = new GoogleAuthProvider(); p.setCustomParameters({ login_hint: cfg.email });
+  try { await signInWithPopup(auth, p); }
+  catch (e) {
+    if (e.code === 'auth/popup-blocked' || e.code === 'auth/operation-not-supported-in-this-environment') {
+      try { await signInWithRedirect(auth, p); return; } catch (e2) { e = e2; }
+    }
+    if (e.code === 'auth/cancelled-popup-request') return;
+    showLogin(describeError(e));
+  }
+};
+$('#btnReconfig').onclick = () => { if (confirm('저장된 설정을 지우고 다시 입력할까요? (일기 데이터는 지워지지 않습니다)')) { localStorage.removeItem(LS); location.reload(); } };
+
+function boot() {
+  try { app = initializeApp(cfg.firebase); } catch (e) { showLogin(describeError(e)); return; }
+  auth = getAuth(app);
+  try { db = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) }); }
+  catch { db = getFirestore(app); }
+  onAuthStateChanged(auth, u => {
+    if (!u) { user = null; stopSync(); showLogin(); return; }
+    if ((u.email || '').toLowerCase() !== cfg.email.toLowerCase()) {
+      signOut(auth); showLogin(`"${u.email}" 계정은 허용되지 않았습니다. ${cfg.email} 계정으로 로그인해 주세요.`); return;
+    }
+    user = u; show('main'); startSync();
+  });
+  getRedirectResult(auth).catch(e => showLogin(describeError(e)));
+}
+
+/* ---------------- 데이터 ---------------- */
+const tsMs = t => (t && t.toMillis) ? t.toMillis() : (t ? (new Date(t).getTime() || 0) : 0);
+const tsIso = t => { const ms = tsMs(t); return ms ? new Date(ms).toISOString() : null; };
+function startSync() {
+  if (unsub) return;
+  const qy = query(collection(db, 'entries'), orderBy('date', 'desc'));
+  unsub = onSnapshot(qy, snap => {
+    entries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    sortEntries(); render();
+  }, e => { toast(describeError(e), 7000); if (e.code === 'permission-denied') showRules(true); });
+}
+function stopSync() { if (unsub) { unsub(); unsub = null; } entries = []; }
+function sortEntries() { entries.sort((a, b) => (b.date || '').localeCompare(a.date || '') || (tsMs(b.createdAt) - tsMs(a.createdAt))); }
+
+/* ---------------- 렌더 ---------------- */
+function fmtDate(d, withYear = true) {
+  const [y, m, dd] = (d || '').split('-').map(Number); if (!y) return d || '';
+  const wd = WD[new Date(y, m - 1, dd).getDay()];
+  return (withYear ? `${y}. ` : '') + `${m}. ${dd}. ${wd}.`;
+}
+function groups() {
+  const g = {};
+  for (const e of entries) { if (!e.date) continue; const y = e.date.slice(0, 4), m = e.date.slice(5, 7); g[y] ??= { total: 0, months: {} }; g[y].total++; g[y].months[m] = (g[y].months[m] || 0) + 1; }
+  return g;
+}
+function filtered() {
+  const q = state.q.trim().toLowerCase();
+  return entries.filter(e => {
+    if (state.sel !== 'all') { const key = state.sel.length === 4 ? (e.date || '').slice(0, 4) : (e.date || '').slice(0, 7); if (key !== state.sel) return false; }
+    if (q) return [e.title, e.body, e.weather].some(v => (v || '').toLowerCase().includes(q));
+    return true;
+  });
+}
+const plain = s => (s || '').replace(/\*\*|__/g, '').replace(/\s+/g, ' ').trim();
+const renderBody = s => esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/__(.+?)__/g, '<u>$1</u>');
+
+function renderTree() {
+  const g = groups(); const years = Object.keys(g).sort().reverse();
+  let h = `<button data-sel="all" class="${state.sel === 'all' ? 'sel' : ''}"><span>전체</span><span class="cnt">${entries.length}</span></button>`;
+  let opts = `<option value="all">전체 (${entries.length})</option>`;
+  for (const y of years) {
+    h += `<div class="year">${y}년</div>`;
+    h += `<button data-sel="${y}" class="${state.sel === y ? 'sel' : ''}"><span>${y}년 전체</span><span class="cnt">${g[y].total}</span></button>`;
+    opts += `<option value="${y}">${y}년 전체 (${g[y].total})</option>`;
+    for (const m of Object.keys(g[y].months).sort().reverse()) {
+      const k = `${y}-${m}`;
+      h += `<button data-sel="${k}" class="month ${state.sel === k ? 'sel' : ''}"><span>${Number(m)}월</span><span class="cnt">${g[y].months[m]}</span></button>`;
+      opts += `<option value="${k}">　${y}년 ${Number(m)}월 (${g[y].months[m]})</option>`;
+    }
+  }
+  $('#tree').innerHTML = h; const s = $('#monthSel'); s.innerHTML = opts; s.value = state.sel;
+}
+function renderList() {
+  const list = filtered();
+  const label = state.sel === 'all' ? '전체' : state.sel.length === 4 ? `${state.sel}년` : `${state.sel.slice(0, 4)}년 ${Number(state.sel.slice(5))}월`;
+  $('#listTitle').textContent = state.q ? `"${state.q}" 검색` : label;
+  $('#listCount').textContent = `${list.length}편`;
+  if (!list.length) { $('#items').innerHTML = `<div class="empty">${entries.length ? '해당하는 일기가 없습니다.' : '아직 일기가 없습니다.<br>+ 새 일기를 눌러 첫 기록을 남겨 보세요.<br>기존 기록은 메뉴 ⋯ → JSON 가져오기'}</div>`; return; }
+  $('#items').innerHTML = list.map(e => `<div class="item ${e.id === state.id ? 'sel' : ''}" data-id="${e.id}"><div class="d"><span>${fmtDate(e.date, state.sel.length !== 7)}</span><span class="w">${esc(e.weather || '')}</span></div><div class="t">${esc(e.title || '(제목 없음)')}</div><div class="p">${esc(plain(e.body).slice(0, 140))}</div></div>`).join('');
+}
+function renderDetail() {
+  const d = $('#detail');
+  if (state.mode === 'edit') { if (!$('#eBody')) renderEdit(); return; }
+  const e = entries.find(x => x.id === state.id);
+  if (!e) {
+    state.mode = 'empty'; state.id = null;
+    d.innerHTML = `<div class="detail-bar"><button class="ghost back" data-act="back">← 목록</button><div class="sp"></div></div><div class="empty" style="padding-top:28vh">왼쪽에서 일기를 선택하거나<br>새 일기를 작성하세요.</div>`;
+    return;
+  }
+  d.innerHTML = `<div class="detail-bar"><button class="ghost back" data-act="back">← 목록</button><div class="sp"></div><button data-act="edit">편집</button><button class="ghost danger" data-act="del">삭제</button></div>
+  <article class="read"><div class="date">${fmtDate(e.date)} ${esc(e.weather || '')}</div><h2>${esc(e.title || '(제목 없음)')}</h2><div class="content">${renderBody(e.body)}</div></article>`;
+  d.scrollTop = 0;
+}
+function renderEdit() {
+  const x = draft;
+  $('#detail').innerHTML = `<div class="detail-bar"><button class="ghost" data-act="cancel">취소</button><div class="sp"></div><button class="primary" data-act="save">저장</button></div>
+  <div class="edit"><div class="row"><input id="eDate" type="date" value="${x.date}"><input id="eWeather" placeholder="날씨 · 기분 (예: 습도는 낮고 건조, 덥지만 견딜만한 날씨)" value="${esc(x.weather)}"></div>
+  <input id="eTitle" class="title" placeholder="제목" value="${esc(x.title)}">
+  <textarea id="eBody" placeholder="오늘의 기록…">${esc(x.body)}</textarea>
+  <div class="hint">**굵게**, __밑줄__ 서식을 쓸 수 있습니다. ⌘/Ctrl+S 로 저장.</div></div>`;
+  (x.isNew ? $('#eTitle') : $('#eBody')).focus();
+}
+function render() {
+  if (state.sel !== 'all') { const g = groups(); const y = state.sel.slice(0, 4); if (!g[y] || (state.sel.length === 7 && !g[y].months[state.sel.slice(5)])) state.sel = 'all'; }
+  renderTree(); renderList(); renderDetail();
+  $('#main').classList.toggle('detail-view', state.mobileDetail);
+}
+
+/* ---------------- 편집/저장 ---------------- */
+function newEntry() {
+  if (state.mode === 'edit' && !confirm('편집 중인 내용을 버릴까요?')) return;
+  draft = { id: null, date: todayISO(), weather: '', title: '', body: '', isNew: true };
+  state.mode = 'edit'; state.mobileDetail = true; $('#detail').innerHTML = ''; render();
+}
+function readDraft() { draft.date = $('#eDate').value; draft.weather = $('#eWeather').value.trim(); draft.title = $('#eTitle').value.trim(); draft.body = $('#eBody').value.replace(/\r/g, ''); }
+function save() {
+  if (!draft) return; readDraft();
+  if (!draft.date) return toast('날짜를 입력해 주세요');
+  if (!draft.title && !draft.body.trim()) return toast('내용을 입력해 주세요');
+  const id = draft.id || doc(collection(db, 'entries')).id;
+  const data = { date: draft.date, weather: draft.weather, title: draft.title, body: draft.body, updatedAt: serverTimestamp() };
+  if (draft.isNew) data.createdAt = serverTimestamp();
+  setDoc(doc(db, 'entries', id), data, { merge: true }).catch(e => toast(describeError(e), 7000));
+  const i = entries.findIndex(x => x.id === id); const local = { ...(i >= 0 ? entries[i] : { createdAt: new Date() }), ...data, updatedAt: new Date() };
+  if (i >= 0) entries[i] = local; else entries.unshift(local);
+  sortEntries(); state.id = id; state.mode = 'read'; draft = null; toast('저장했습니다'); render();
+}
+function del() {
+  const e = entries.find(x => x.id === state.id); if (!e) return;
+  if (!confirm(`"${e.title || fmtDate(e.date)}" 일기를 삭제할까요?`)) return;
+  deleteDoc(doc(db, 'entries', e.id)).catch(err => toast(describeError(err), 7000));
+  entries = entries.filter(x => x.id !== e.id); state.id = null; state.mode = 'empty'; state.mobileDetail = false; toast('삭제했습니다'); render();
+}
+
+/* ---------------- 백업/가져오기 ---------------- */
+function exportJSON() {
+  const data = entries.map(e => ({ date: e.date, weather: e.weather || '', title: e.title || '', body: e.body || '', createdAt: tsIso(e.createdAt), updatedAt: tsIso(e.updatedAt) }));
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
+  a.download = `일상의기록_백업_${todayISO()}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+function normDate(v) {
+  if (!v) return null; v = String(v).trim();
+  let m = v.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/) || v.match(/^(\d{4})\.\s*(\d{1,2})\.\s*(\d{1,2})/);
+  return m ? `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}` : null;
+}
+function hash(s) { let h = 0; for (const c of s) h = (h * 31 + c.charCodeAt(0)) | 0; return (h >>> 0).toString(36); }
+async function importJSON(file) {
+  let arr; try { arr = JSON.parse(await file.text()); } catch { return toast('JSON 파일을 읽을 수 없습니다'); }
+  if (!Array.isArray(arr)) arr = arr.entries || arr.items || [];
+  const rows = [];
+  for (const r of arr) {
+    const date = normDate(r.date || r['날짜']); if (!date) continue;
+    rows.push({ date, weather: String(r.weather || r.mood || r['날씨'] || ''), title: String(r.title || r['제목'] || ''), body: String(r.body || r.content || r.text || r['본문'] || '') });
+  }
+  if (!rows.length) return toast('가져올 일기가 없습니다');
+  if (!confirm(`${rows.length}편을 가져올까요? (같은 날짜·제목의 일기는 덮어씁니다)`)) return;
+  try {
+    for (let i = 0; i < rows.length; i += 400) {
+      const b = writeBatch(db);
+      for (const r of rows.slice(i, i + 400)) b.set(doc(db, 'entries', 'imp-' + r.date + '-' + hash(r.title + '|' + r.body.slice(0, 60))), { ...r, createdAt: serverTimestamp(), updatedAt: serverTimestamp() }, { merge: true });
+      await b.commit();
+    }
+    toast(`${rows.length}편을 가져왔습니다`);
+  } catch (e) { toast(describeError(e), 7000); }
+}
+
+/* ---------------- 설정/규칙 모달 ---------------- */
+const closeModal = () => $('#modal').classList.add('hidden');
+function openSettings() {
+  const link = location.origin + location.pathname + '#cfg=' + b64e(JSON.stringify(cfg));
+  $('#modal').innerHTML = `<div class="card"><h1>설정</h1>
+  <p>로그인 계정: <b>${esc(cfg.email)}</b><br>프로젝트: <code>${esc(cfg.firebase.projectId || '')}</code><br>현재 주소: <code>${esc(location.host)}</code></p>
+  <div class="field"><label>다른 기기 연결용 링크 — 휴대폰 등에서 이 링크를 열면 설정이 자동으로 들어갑니다</label><input id="setupLink" readonly value="${esc(link)}"></div>
+  <div class="btnrow"><button id="copyLink" class="primary">링크 복사</button><button id="resetCfg" class="danger">이 기기 설정 초기화</button><div style="flex:1"></div><button id="closeModal">닫기</button></div></div>`;
+  $('#modal').classList.remove('hidden');
+  $('#copyLink').onclick = async () => { try { await navigator.clipboard.writeText(link); toast('링크를 복사했습니다'); } catch { $('#setupLink').select(); toast('링크를 선택했습니다. Ctrl+C로 복사하세요'); } };
+  $('#resetCfg').onclick = () => { if (confirm('이 기기의 설정을 지울까요? 일기 데이터는 지워지지 않습니다.')) { localStorage.removeItem(LS); location.reload(); } };
+  $('#closeModal').onclick = closeModal;
+}
+function rulesText() {
+  return `rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /entries/{id} {
+      allow read, write: if request.auth != null
+        && request.auth.token.email.lower() == "${cfg.email.toLowerCase()}";
+    }
+  }
+}`;
+}
+function showRules(denied) {
+  $('#modal').innerHTML = `<div class="card"><h1>Firestore 보안 규칙</h1>
+  <p>${denied ? '<b style="color:var(--danger)">데이터 접근이 거부되었습니다.</b> ' : ''}Firebase 콘솔 → <b>Firestore Database</b> → <b>규칙</b> 탭에 아래 내용을 전체 붙여넣고 <b>게시</b>를 누르세요. 그 다음 이 페이지를 새로 고치면 됩니다.</p>
+  <pre class="rules" id="rulesPre">${esc(rulesText())}</pre>
+  <div class="btnrow"><button id="copyRules" class="primary">규칙 복사</button><div style="flex:1"></div><button id="closeModal">닫기</button></div></div>`;
+  $('#modal').classList.remove('hidden');
+  $('#copyRules').onclick = async () => { try { await navigator.clipboard.writeText(rulesText()); toast('복사했습니다'); } catch { toast('복사에 실패했습니다. 직접 선택해 복사해 주세요'); } };
+  $('#closeModal').onclick = closeModal;
+}
+
+/* ---------------- 이벤트 ---------------- */
+$('#tree').onclick = e => { const b = e.target.closest('button[data-sel]'); if (!b) return; state.sel = b.dataset.sel; state.q = ''; $('#q').value = ''; render(); };
+$('#monthSel').onchange = e => { state.sel = e.target.value; render(); };
+$('#items').onclick = e => {
+  const it = e.target.closest('.item'); if (!it) return;
+  if (state.mode === 'edit' && !confirm('편집 중인 내용을 버릴까요?')) return;
+  draft = null; state.id = it.dataset.id; state.mode = 'read'; state.mobileDetail = true; render();
+};
+$('#detail').onclick = e => {
+  const b = e.target.closest('[data-act]'); if (!b) return; const act = b.dataset.act;
+  if (act === 'back') { state.mobileDetail = false; render(); }
+  else if (act === 'edit') { const x = entries.find(y => y.id === state.id); if (!x) return; draft = { id: x.id, date: x.date, weather: x.weather || '', title: x.title || '', body: x.body || '', isNew: false }; state.mode = 'edit'; $('#detail').innerHTML = ''; render(); }
+  else if (act === 'cancel') { if (draft && draft.isNew) { state.mode = state.id ? 'read' : 'empty'; if (!state.id) state.mobileDetail = false; } else state.mode = 'read'; draft = null; render(); }
+  else if (act === 'save') save();
+  else if (act === 'del') del();
+};
+$('#q').oninput = e => { state.q = e.target.value; render(); };
+$('#btnNew').onclick = newEntry;
+$('#btnMenu').onclick = e => { e.stopPropagation(); $('#dd').classList.toggle('open'); };
+document.addEventListener('click', e => { if (!e.target.closest('.menu')) $('#dd').classList.remove('open'); });
+$('#mExport').onclick = exportJSON;
+$('#mImport').onclick = () => $('#fileIn').click();
+$('#fileIn').onchange = e => { const f = e.target.files[0]; if (f) importJSON(f); e.target.value = ''; };
+$('#mSettings').onclick = openSettings;
+$('#mRules').onclick = () => showRules(false);
+$('#mLogout').onclick = () => signOut(auth);
+$('#modal').onclick = e => { if (e.target === $('#modal')) closeModal(); };
+document.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's' && state.mode === 'edit') { e.preventDefault(); save(); }
+  if (e.key === 'Escape') closeModal();
+});
+window.addEventListener('beforeunload', e => { if (state.mode === 'edit') { e.preventDefault(); e.returnValue = ''; } });
+
+/* ---------------- 시작 ---------------- */
+cfg = takeHashConfig() || loadCfg();
+if (!cfg) show('setup'); else boot();
+</script>
+</body>
+</html>
